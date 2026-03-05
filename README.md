@@ -1,4 +1,4 @@
-<img width="1079" height="880" alt="image" src="https://github.com/user-attachments/assets/ea74b513-62c5-4670-8ff8-4db470753c72" /># 智能翻译助手 (AI Translator)
+# 智能翻译助手 (AI Translator)
 
 这是一个基于 **FastAPI** 和 **Ollama** 的本地智能翻译工具，提供现代化、响应式的 Web 界面。项目支持 **图片翻译**（OCR + 翻译）和 **文本翻译**，并且支持动态加载 100+ 种目标语言。
 
