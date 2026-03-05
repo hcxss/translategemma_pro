@@ -63,7 +63,7 @@ python backend.py
 
 直接在浏览器中打开项目目录下的 `index.html` 文件即可。
 
-> **⚠️ 注意**：默认前端代码配置连接到 `http://192.168.12.161:9081`。如果您的后端在本地运行 (`localhost`)，请编辑 `index.html` 中的 API 地址。
+> **⚠️ 注意**：默认前端代码配置连接到 `http://127.0.0.1:9081`。如果您的后端在本地运行 (`localhost`)，请编辑 `index.html` 中的 API 地址。
 
 ## 🔌 API 接口文档
 
@@ -106,7 +106,7 @@ Content-Type: application/json
 编辑 `backend.py` 中的 `OLLAMA_API_URL`：
 ```python
 # 默认为
-OLLAMA_API_URL = "http://192.168.12.161:11434/api/generate"
+OLLAMA_API_URL = "http://127.0.0.1:11434/api/generate"
 ```
 
 ### 修改默认语言
