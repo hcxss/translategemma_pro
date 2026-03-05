@@ -336,7 +336,7 @@
             if (languagesLoaded) return;
             
             try {
-                const response = await fetch('http://192.168.12.161:9081/languages');
+                const response = await fetch('http://127.0.0.1:9081/languages');
                 if (!response.ok) throw new Error('Failed to load languages');
                 
                 const languages = await response.json();
@@ -477,7 +477,7 @@
             resultSection.style.display = 'none';
             
             try {
-                const response = await fetch('http://192.168.12.161:9081/translate_text', {
+                const response = await fetch('http://127.0.0.1:9081/translate_text', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -552,7 +552,7 @@
             resultSection.style.display = 'none';
 
             try {
-                const response = await fetch('http://192.168.12.161:9081/translate', {
+                const response = await fetch('http://127.0.0.1:9081/translate', {
                     method: 'POST',
                     body: formData
                 });
