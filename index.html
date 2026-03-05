@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能翻译助手</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-section {
+            border: 2px dashed #ccc;
+            padding: 40px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+            cursor: pointer;
+        }
+        .upload-section:hover {
+            border-color: #4CAF50;
+            background-color: #f9fff9;
+        }
+        #fileInput {
+            display: none;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .preview-container {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        #previewImage {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 5px solid #4CAF50;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Layout Styles */
+        .main-content {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        .left-panel, .right-panel {
+            flex: 1;
+            min-width: 0;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .close:hover {
+            color: #bbb;
+        }
+        #previewImage {
+            cursor: zoom-in;
+        }
+
+        /* Tab Styles */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+        .tab-btn:hover {
+            color: #4CAF50;
+        }
+        .tab-btn.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Text Translation Styles */
+        .text-translation-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .result-header h3 {
+            margin: 0;
+        }
+        .copy-btn {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover {
+            background-color: #f0f0f0;
+            color: #333;
+            border-color: #ccc;
+        }
+        .input-group, .result-group {
+            flex: 1;
+            min-width: 0;
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+            min-height: 300px;
+        }
+        textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        @media (max-width: 768px) {
+            .text-translation-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 智能翻译助手</h1>
+        
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('image', this)">图片翻译</button>
+            <button class="tab-btn" onclick="switchTab('text', this)">文本翻译</button>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="language-selector" style="text-align: center; margin-bottom: 20px;">
+            <label for="targetLanguage" style="margin-right: 10px; font-weight: bold; color: #555;">目标语言：</label>
+            <select id="targetLanguage" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; min-width: 200px;">
+                <option value="zh-Hans">Chinese (zh-Hans)</option>
+            </select>
+        </div>
+
+        <!-- Image Translation Tab -->
+        <div id="imageTab" class="tab-content active">
+            <div class="main-content">
+                <div class="left-panel">
+                    <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+                        <p>点击上传或拖拽图片到此处</p>
+                        <p style="font-size: 0.9em; color: #666;">支持 PNG, JPG, JPEG 格式</p>
+                    </div>
+
+                    <div class="preview-container" id="previewContainer">
+                        <img id="previewImage" src="" alt="预览图" onclick="openZoomModal(this.src)">
+                    </div>
+
+                    <button id="translateBtn" class="btn" onclick="uploadAndTranslate()" style="display: none;">开始翻译</button>
+                </div>
+
+                <div class="right-panel">
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <span>正在利用 AI 识别并翻译图片内容，请稍候...</span>
+                    </div>
+
+                    <div class="result-section" id="resultSection">
+                        <div class="result-header">
+                            <h3>翻译结果：</h3>
+                            <button class="copy-btn" onclick="copyText('translationResult', this)">复制结果</button>
+                        </div>
+                        <div id="translationResult" style="white-space: pre-wrap; line-height: 1.6;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Text Translation Tab -->
+        <div id="textTab" class="tab-content">
+            <div class="text-translation-container">
+                <div class="input-group">
+                    <textarea id="sourceText" placeholder="请输入需要翻译的文本..." rows="12"></textarea>
+                    <button class="btn" onclick="translateText()" id="textTranslateBtn">翻译文本</button>
+                </div>
+                <div class="result-group">
+                    <div class="loading" id="textLoading">
+                        <div class="spinner"></div>
+                        <span>正在翻译文本，请稍候...</span>
+                    </div>
+                    <div class="result-section" id="textResultSection" style="display: none; margin-top: 0;">
+                        <div class="result-header">
+                            <h3>翻译结果：</h3>
+                            <button class="copy-btn" onclick="copyText('textTranslationResult', this)">复制结果</button>
+                        </div>
+                        <div id="textTranslationResult" style="white-space: pre-wrap; line-height: 1.6;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zoom Modal -->
+    <div id="imageModal" class="modal" onclick="closeZoomModal()">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="zoomedImage">
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let languagesLoaded = false;
+
+        // Load languages on startup
+        async function loadLanguages() {
+            if (languagesLoaded) return;
+            
+            try {
+                const response = await fetch('http://192.168.12.161:9081/languages');
+                if (!response.ok) throw new Error('Failed to load languages');
+                
+                const languages = await response.json();
+                const select = document.getElementById('targetLanguage');
+                
+                // Clear existing options except the default one if we want to keep it while loading
+                // But better to rebuild
+                select.innerHTML = '';
+                
+                // Convert object to array for sorting if needed, or just iterate
+                // The JSON seems to be code: name
+                
+                // Create default option if not present in list (it should be)
+                let defaultFound = false;
+                
+                for (const [code, name] of Object.entries(languages)) {
+                    const option = document.createElement('option');
+                    option.value = code;
+                    option.textContent = `${name} (${code})`;
+                    if (code === 'zh-Hans') {
+                        option.selected = true;
+                        defaultFound = true;
+                    }
+                    select.appendChild(option);
+                }
+                
+                if (!defaultFound) {
+                    // If zh-Hans is not in the list, add it or select the first one
+                    const option = document.createElement('option');
+                    option.value = 'zh-Hans';
+                    option.textContent = 'Chinese (zh-Hans)';
+                    option.selected = true;
+                    select.insertBefore(option, select.firstChild);
+                }
+                
+                languagesLoaded = true;
+            } catch (error) {
+                console.error('Error loading languages:', error);
+                // Keep default option
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadLanguages);
+
+        async function copyText(elementId, btn) {
+            const text = document.getElementById(elementId).innerText;
+            
+            const showSuccess = () => {
+                const originalText = btn.innerText; // Keep original text (e.g., "复制结果")
+                // Only update if not already showing success state to prevent flickering
+                if (btn.innerText !== '已复制!') {
+                    btn.setAttribute('data-original-text', originalText);
+                }
+                
+                btn.innerText = '已复制!';
+                btn.style.borderColor = '#4CAF50';
+                btn.style.color = '#4CAF50';
+                
+                setTimeout(() => {
+                    // Restore original text
+                    btn.innerText = btn.getAttribute('data-original-text') || '复制结果';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 2000);
+            };
+
+            // 优先尝试 navigator.clipboard (现代浏览器)
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showSuccess();
+                    return;
+                } catch (err) {
+                    console.warn('navigator.clipboard failed, trying fallback:', err);
+                }
+            }
+
+            // 回退方案：使用 textarea + execCommand (兼容 HTTP 和旧版浏览器)
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                
+                // 确保 textarea 不可见但可选中，且不影响页面布局
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    showSuccess();
+                } else {
+                    throw new Error('execCommand returned false');
+                }
+            } catch (err) {
+                console.error('Copy failed:', err);
+                alert('复制失败，请手动复制');
+            }
+        }
+
+        function switchTab(tabName, btn) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Deactivate all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            
+            // Activate selected tab and button
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            btn.classList.add('active');
+        }
+
+        async function translateText() {
+            const text = document.getElementById('sourceText').value.trim();
+            const targetLanguage = document.getElementById('targetLanguage').value;
+            
+            if (!text) {
+                alert('请输入需要翻译的文本！');
+                return;
+            }
+
+            const translateBtn = document.getElementById('textTranslateBtn');
+            const loading = document.getElementById('textLoading');
+            const resultSection = document.getElementById('textResultSection');
+            const resultDiv = document.getElementById('textTranslationResult');
+
+            translateBtn.disabled = true;
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+            
+            try {
+                const response = await fetch('http://192.168.12.161:9081/translate_text', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        text: text,
+                        target_language: targetLanguage
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                resultDiv.textContent = data.translation;
+                resultSection.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('翻译失败：' + error.message);
+            } finally {
+                translateBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function openZoomModal(src) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('zoomedImage');
+            modal.style.display = "block";
+            modalImg.src = src;
+        }
+
+        function closeZoomModal() {
+            document.getElementById('imageModal').style.display = "none";
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImage = document.getElementById('previewImage');
+                    previewImage.src = e.target.result;
+                    document.getElementById('previewContainer').style.display = 'block';
+                    document.getElementById('translateBtn').style.display = 'block';
+                    document.getElementById('resultSection').style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function uploadAndTranslate() {
+            if (!selectedFile) {
+                alert('请先选择一张图片！');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            const targetLanguage = document.getElementById('targetLanguage').value;
+            formData.append('target_language', targetLanguage);
+
+            const translateBtn = document.getElementById('translateBtn');
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+
+            translateBtn.disabled = true;
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+
+            try {
+                const response = await fetch('http://192.168.12.161:9081/translate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('translationResult').textContent = data.translation;
+                resultSection.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('翻译失败：' + error.message);
+            } finally {
+                translateBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
